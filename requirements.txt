@@ -1,0 +1,9 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+runpod>=1.6.0
+torch>=2.1.0
+torchvision
+transformers>=4.42.0
+git+https://github.com/huggingface/diffusers.git
+accelerate>=0.30.0
+sentencepiece
+optimum

@@ -1,0 +1,44 @@
+import os
+import torch
+import runpod
+from diffusers import LTXVideoPipeline
+
+pipe = None
+
+def load_model():
+    global pipe
+    if pipe is None:
+        # RunPodが自動でモデルを準備してくれる特別なフォルダ
+        cache_dir = "/runpod-volume/huggingface-cache"
+        model_id = "Civitai/Sulphur-2-distilled-fp8"
+        
+        print("Sulphur-2-FP8を読み込んでいます...")
+        
+        # ネットに繋がず、RunPodのキャッシュから直接読み込む
+        pipe = LTXVideoPipeline.from_pretrained(
+            model_id,
+            cache_dir=cache_dir,
+            torch_dtype=torch.float16,
+            local_files_only=True
+        ).to("cuda")
+        
+        pipe.enable_model_cpu_offload() 
+    return pipe
+
+def handler(job):
+    job_input = job['input']
+    prompt = job_input.get("prompt", "A futuristic city at night, cinematic.")
+    
+    pipeline = load_model()
+    
+    with torch.inference_mode():
+        video_frames = pipeline(
+            prompt=prompt, 
+            num_inference_steps=8,
+            num_frames=121
+        ).frames[0]
+    
+    # 完了メッセージを返す（動画の保存処理はここに後から追加可能）
+    return {"status": "success", "message": "動画の生成が完了しました！"}
+
+runpod.serverless.start({"handler": handler})
