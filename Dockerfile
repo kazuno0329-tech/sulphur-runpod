@@ -20,7 +20,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY handler.py .
 
-ENV HF_HUB_OFFLINE=1
-ENV TRANSFORMERS_OFFLINE=1
+ENV HF_HUB_OFFLINE=0
+ENV TRANSFORMERS_OFFLINE=0
 
 CMD ["python3", "-u", "handler.py"]
