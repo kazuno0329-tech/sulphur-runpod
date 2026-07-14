@@ -1,6 +1,18 @@
 import os
 import torch
 import runpod
+
+import diffusers
+import sys
+print(f"--- DEBUG: Python version is {sys.version} ---")
+print(f"--- DEBUG: Diffusers path is {diffusers.__file__} ---")
+try:
+    print(f"--- DEBUG: Diffusers version is {diffusers.__version__} ---")
+except Exception as e:
+    print(f"--- DEBUG: Cannot get version {e} ---")
+
+
+
 from diffusers import LTXVideoPipeline
 
 pipe = None
