@@ -20,18 +20,18 @@ pipe = None
 def load_model():
     global pipe
     if pipe is None:
-        # RunPodが自動でモデルを準備してくれる特別なフォルダ
-        cache_dir = "/runpod-volume/huggingface-cache"
+        # コンテナ内のローカルストレージ上にキャッシュフォルダを作成
+        cache_dir = "/app/huggingface-cache"
         model_id = "Civitai/Sulphur-2-distilled-fp8"
         
-        print("Sulphur-2-FP8を読み込んでいます...")
+        print(f"Sulphur-2-FP8を読み込んでいます（キャッシュ先: {cache_dir}）...")
         
-        # ネットに繋がず、RunPodのキャッシュから直接読み込む
+        # local_files_onlyはFalseにし、初回到着時のみネットからDLしてキャッシュに保存させます
         pipe = LTXVideoPipeline.from_pretrained(
             model_id,
             cache_dir=cache_dir,
             torch_dtype=torch.float16,
-            local_files_only=True
+            local_files_only=False
         ).to("cuda")
         
         pipe.enable_model_cpu_offload() 
