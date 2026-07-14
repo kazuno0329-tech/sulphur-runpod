@@ -9,14 +9,13 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# 🌟【ここが修正ポイント】
-# pipとsetuptoolsを最新に更新することで、古いpipによるエラーや競合を根本から防ぎます
 RUN pip3 install --no-cache-dir --upgrade pip setuptools
 
 COPY requirements.txt .
-
-# 修正：余計なオプションを外してシンプルにインストールします
 RUN pip3 install --no-cache-dir -r requirements.txt
+
+# 🌟【修正ポイント】ここで明示的に GitHub から最新の diffusers をキャッシュなしでインストールします
+RUN pip3 install --no-cache-dir git+https://github.com/huggingface/diffusers.git
 
 COPY handler.py .
 
