@@ -1,5 +1,6 @@
-# PyTorchとCUDA環境がセットアップ済みの公式イメージ
-FROM pytorch/pytorch:2.2.1-cuda12.1-cudnn8-runtime
+
+# 2.2.1 から 2.4.0 へアップグレード
+FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
 
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
