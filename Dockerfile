@@ -15,7 +15,7 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir --upgrade -r requirements.txt
 
 # もしこれでもダメな場合のみ、以下のコメントアウトを外して強制トリガーにしてください
-# ARG CACHE_BUST=1
+ARG CACHE_BUST=2
 
 COPY handler.py .
 
