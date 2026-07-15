@@ -1,4 +1,3 @@
-
 # 2.2.1 から 2.4.0 へアップグレード
 FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
 
@@ -8,9 +7,15 @@ WORKDIR /app
 
 RUN pip3 install --no-cache-dir --upgrade pip setuptools
 
-# requirements.txtから一括でライブラリをインストール
+# ここまではキャッシュをフル活用（重い基本レイヤーはスキップ）
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+
+# ⚠️ キャッシュを利用しつつ、確実に最新のパッケージを当てるための記述
+# --upgrade (または -U) フラグを付けることで、指定バージョン未満の古いキャッシュがあっても強制的に上書きします
+RUN pip3 install --no-cache-dir --upgrade -r requirements.txt
+
+# もしこれでもダメな場合のみ、以下のコメントアウトを外して強制トリガーにしてください
+# ARG CACHE_BUST=1
 
 COPY handler.py .
 
