@@ -3,3 +3,4 @@ transformers>=4.42.0
 accelerate>=0.30.0
 sentencepiece
 optimum
+diffusers>=0.31.0
