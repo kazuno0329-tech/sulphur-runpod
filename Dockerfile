@@ -1,25 +1,20 @@
-# 2.2.1 から 2.4.0 へアップグレード
-FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
+# ベースイメージ（すでに PyTorch や CUDA が最適化されているもの）
+FROM runpod/pytorch:2.5.1-py3.10-cuda12.4.1-devel-ubuntu22.04
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# 必要なシステムパッケージのインストール（必要に応じて）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# 作業ディレクトリの設定
 WORKDIR /app
 
-RUN pip3 install --no-cache-dir --upgrade pip setuptools
-
-# ここまではキャッシュをフル活用（重い基本レイヤーはスキップ）
+# 依存ライブラリのインストール
 COPY requirements.txt .
-
-# ⚠️ キャッシュを利用しつつ、確実に最新のパッケージを当てるための記述
-# --upgrade (または -U) フラグを付けることで、指定バージョン未満の古いキャッシュがあっても強制的に上書きします
 RUN pip3 install --no-cache-dir --upgrade -r requirements.txt
 
-# もしこれでもダメな場合のみ、以下のコメントアウトを外して強制トリガーにしてください
-ARG CACHE_BUST=3
+# アプリケーションコードのコピー
+COPY . .
 
-COPY handler.py .
-
-ENV HF_HUB_OFFLINE=0
-ENV TRANSFORMERS_OFFLINE=0
-
-CMD ["python3", "-u", "handler.py"]
+# ハンドラーの実行コマンド
+CMD [ "python3", "-u", "handler.py" ]
