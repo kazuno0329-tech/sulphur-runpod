@@ -1,6 +1,7 @@
-runpod>=1.6.0
-transformers>=4.42.0
-accelerate>=0.30.0
+runpod>=1.14.0
+torch>=2.5.1
+diffusers==0.32.1
+transformers
+accelerate
 sentencepiece
-optimum
-diffusers>=0.32.1
+huggingface_hub
