@@ -1,8 +1,7 @@
 import os
 import torch
 import runpod
-# ⭕ 正しい公式クラス名「LTXPipeline」をインポート
-from diffusers import LTXPipeline
+from diffusers import DiffusionPipeline  # 汎用Pipelineクラスを使用する
 from diffusers.utils import export_to_video
 
 # キャッシュディレクトリの設定
@@ -16,7 +15,7 @@ try:
 except Exception as e:
     print(f"--- DEBUG: Failed to check diffusers version: {e} ---")
 
-# グローバル変数としてパイプラインを保持（起動時にロード）
+# グローバル変数としてパイプラインを保持
 pipe = None
 
 def load_model():
@@ -24,17 +23,23 @@ def load_model():
     model_id = "Civitai/Sulphur-2-distilled-fp8"
     print(f"Loading model: {model_id} ...")
     
-    # LTX-Videoは公式にbfloat16推奨のため、VRAMとメモリの節約を兼ねてbf16でロードします
-    pipe = LTXPipeline.from_pretrained(
+    # FP8モデルをロードするために最適な設定
+    # DiffusionPipelineを使用することで、Hugging Face側で設定された正しいパイプラインクラスが自動選択されます
+    pipe = DiffusionPipeline.from_pretrained(
         model_id,
         cache_dir=cache_dir,
-        torch_dtype=torch.bfloat16,
+        torch_dtype=torch.bfloat16,  # 内部計算用のdtype
+        device_map="auto",           # メモリ節約と正しいデバイス配置のため
         local_files_only=False
-    ).to("cuda")
+    )
+    
+    # ⚠️ モデル全体のVRAM消費と起動速度のバランスを取るため、
+    # もしエラー（OOM等）が起きる場合は、以下の行を有効にしてください
+    # pipe.enable_model_cpu_offload() 
     
     print("Model loaded successfully!")
 
-# コンテナ起動時にモデルをロード（コールドスタート時に実行されます）
+# コンテナ起動時にモデルをロード（コールドスタート時）
 load_model()
 
 def handler(job):
@@ -46,11 +51,13 @@ def handler(job):
         prompt = job_input.get("prompt", "A futuristic city at night, 4k, high resolution")
         negative_prompt = job_input.get("negative_prompt", "worst quality, low quality")
         
-        # LTX-Video用の各種パラメータ（必要に応じてクライアントから調整可能）
-        num_frames = job_input.get("num_frames", 161) # LTX-Videoは「8 * n + 1」フレームが推奨
+        # パラメータの取得（LTX-Video推奨は 8*n + 1 フレーム）
+        num_frames = job_input.get("num_frames", 161) # ~6-7秒分
         width = job_input.get("width", 768)
         height = job_input.get("height", 512)
         num_inference_steps = job_input.get("num_inference_steps", 30)
+        
+        # Distilled(蒸留)モデルの場合、guidance_scaleは 1.0 または 3.0 付近が推奨されます
         guidance_scale = job_input.get("guidance_scale", 3.0)
         
         print(f"Generating video for prompt: '{prompt}'")
@@ -73,9 +80,7 @@ def handler(job):
         export_to_video(video_frames, output_path, fps=24)
         print(f"Video saved to {output_path}")
         
-        # TODO: 実際の運用時は、ここで生成されたビデオファイルをS3や
-        # RunPodオブジェクトストレージ等にアップロードし、そのURLを返却することをお勧めします。
-        # 今回はパスまたは仮の完了メッセージを返します。
+        # TODO: 生成した動画ファイルをS3等に転送し、そのURLを返す処理を推奨
         return {
             "status": "success",
             "message": "Video generated successfully",
@@ -83,10 +88,12 @@ def handler(job):
         }
         
     except Exception as e:
-        print(f"Error during execution: {str(e)}")
+        import traceback
+        error_msg = f"Error during execution: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
         return {
             "status": "error",
-            "message": str(e)
+            "message": error_msg
         }
 
 # RunPodのワーカーサービスを開始
