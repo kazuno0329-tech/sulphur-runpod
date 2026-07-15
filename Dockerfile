@@ -13,7 +13,14 @@ COPY requirements.txt .
 # ⚠️ キャッシュを利用しつつ、確実に最新のパッケージを当てるための記述
 # --upgrade (または -U) フラグを付けることで、指定バージョン未満の古いキャッシュがあっても強制的に上書きします
 # 【重要】pip3コマンド自体のオプションとして --no-deps を指定する
-RUN pip3 install --no-cache-dir --upgrade --no-deps -r requirements.txt
+#RUN pip3 install --no-cache-dir --upgrade --no-deps -r requirements.txt
+
+# 1. ここで runpod だけを、余計な依存（moto等）を完全に除外してピンポイントでインストールします
+RUN pip3 install --no-cache-dir runpod==1.14.0 --no-deps
+
+# 2. その後、残りの主要ライブラリを依存関係を含めて通常インストールします
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir --upgrade -r requirements.txt
 
 # もしこれでもダメな場合のみ、以下のコメントアウトを外して強制トリガーにしてください
 # ARG CACHE_BUST=3
