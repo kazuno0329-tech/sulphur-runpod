@@ -12,7 +12,8 @@ COPY requirements.txt .
 
 # ⚠️ キャッシュを利用しつつ、確実に最新のパッケージを当てるための記述
 # --upgrade (または -U) フラグを付けることで、指定バージョン未満の古いキャッシュがあっても強制的に上書きします
-RUN pip3 install --no-cache-dir --upgrade -r requirements.txt
+# 【重要】pip3コマンド自体のオプションとして --no-deps を指定する
+RUN pip3 install --no-cache-dir --upgrade --no-deps -r requirements.txt
 
 # もしこれでもダメな場合のみ、以下のコメントアウトを外して強制トリガーにしてください
 # ARG CACHE_BUST=3

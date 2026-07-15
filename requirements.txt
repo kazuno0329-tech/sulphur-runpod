@@ -1,4 +1,4 @@
-runpod --no-deps
+runpod==1.14.0
 torch==2.4.1
 diffusers==0.32.1
 transformers
