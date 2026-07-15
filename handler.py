@@ -1,14 +1,7 @@
-# ⚠️ 必ず他の全てのインポート（runpodやtorch、diffusers等）よりも「上」に書いてください
-import sys
 import os
-
-# numba や特定のコンパイラが torch.Tensor をパースしようとするのを防ぐ環境変数
-os.environ["NUMBA_DISABLE_JIT"] = "1"
-os.environ["TRITON_INTERPRET"] = "1"
-
-# ここから通常のインポートを開始
 import torch
 import runpod
+# ⭕ 正しい公式クラス名「LTXPipeline」をインポート
 from diffusers import LTXPipeline
 from diffusers.utils import export_to_video
 
