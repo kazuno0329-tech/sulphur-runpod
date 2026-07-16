@@ -1,22 +1,37 @@
+# 1. ベースイメージ
 FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
-# 必要なツール
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git wget python3 python3-pip ffmpeg && rm -rf /var/lib/apt/lists/*
-
-RUN pip3 install --no-cache-dir runpod huggingface_hub torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-# ComfyUI
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
+# 環境変数設定
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /comfyui
+
+# 2. システムパッケージのインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    wget \
+    python3 \
+    python3-pip \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# 3. Pythonのベースライブラリを先にインストール（分割して失敗を防ぐ）
+RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir runpod huggingface_hub
+
+# 4. PyTorch関連のインストール（最も重いため独立させる）
+RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# 5. ComfyUIのインストール
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# カスタムノード
-RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git /comfyui/custom_nodes/ComfyUI-VideoHelperSuite
+# 6. カスタムノードのインストール
+RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git custom_nodes/ComfyUI-VideoHelperSuite
 
-# ★重要：ここでモデルを事前に配置する設定を追加
-# ※ご自身のモデルのパスを /comfyui/models/checkpoints/ に合わせる必要があります
+# 7. ファイルのコピー
+# 確実にルートにあるファイルのみをコピー
 COPY workflow_api.json /workflow_api.json
 COPY rp_handler.py /rp_handler.py
 
+# 8. 実行コマンド
 CMD ["python3", "-u", "/rp_handler.py"]
