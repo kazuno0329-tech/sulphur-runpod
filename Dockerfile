@@ -16,7 +16,7 @@ COPY requirements.txt .
 #RUN pip3 install --no-cache-dir --upgrade --no-deps -r requirements.txt
 
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir --upgrade -r requirements.txt
+RUN pip3 install --no-cache-dir --upgrade --upgrade-strategy eager -r requirements.txt
 
 # もしこれでもダメな場合のみ、以下のコメントアウトを外して強制トリガーにしてください
 # ARG CACHE_BUST=3
