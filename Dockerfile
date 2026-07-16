@@ -17,6 +17,8 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
 COPY workflow_api.json /workflow_api.json
 COPY rp_handler.py /rp_handler.py
 
+RUN echo ""
+
 # 5. 起動スクリプトの作成（ここが重要！）
 # ComfyUIをバックグラウンド( & )で起動し、その後rp_handler.pyを起動します
 # --listen 0.0.0.0 と --port 8188 を指定してOSErrorを回避します
