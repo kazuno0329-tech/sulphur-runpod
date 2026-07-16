@@ -26,5 +26,5 @@ echo "ComfyUI started in background."\n\
 python3 /rp_handler.py' > /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-# 6. エントリーポイントの設定
+## 6. エントリーポイントの設定
 ENTRYPOINT ["/entrypoint.sh"]
