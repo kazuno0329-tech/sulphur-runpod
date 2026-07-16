@@ -1,6 +1,7 @@
 import os
 import torch
 import runpod
+import base64
 from diffusers import DiffusionPipeline
 from diffusers.utils import export_to_video
 
@@ -14,7 +15,7 @@ pipe = None
 def load_model():
     global pipe
     # model_id = "Civitai/Sulphur-2-distilled-fp8"
-    model_id = "Kijai/Sulphur-2-distilled-fp8"
+    model_id = "SulphurAI/Sulphur-2-base"
     print(f"Loading model: {model_id} ...")
     
     try:
@@ -75,14 +76,21 @@ def handler(job):
                 output_type="np"
             ).frames[0]
             
+        # 生成されたフレームをmp4ビデオファイルとして保存
         output_path = "/tmp/output_video.mp4"
         export_to_video(video_frames, output_path, fps=24)
         print(f"Video saved to {output_path}")
         
+        # 💡 追加：動画ファイルを読み込んでBase64文字列に変換する
+        with open(output_path, "rb") as video_file:
+            encoded_video = base64.b64encode(video_file.read()).decode("utf-8")
+            
+        # 💡 追加：実行結果として動画データ（Base64）を直接返却する
         return {
             "status": "success",
             "message": "Video generated successfully",
-            "local_path": output_path
+            "video_base64": encoded_video, 
+            "format": "mp4"
         }
         
     except Exception as e:
