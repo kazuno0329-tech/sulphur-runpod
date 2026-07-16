@@ -6,22 +6,21 @@ import runpod
 from runpod.serverless.utils import rp_upload
 from huggingface_hub import hf_hub_download
 
-# --- 【追加】コンテナ起動時にモデルが存在しない場合、自動でダウンロードする ---
-MODEL_PATH = "/comfyui/models/checkpoints/Sulphur-2-distilled-fp8.safetensors"
+# --- コンテナ起動時にモデルが存在しない場合、自動でダウンロードする ---
+# ※パスを「/workspace/ComfyUI/...」に修正しました
+MODEL_PATH = "/workspace/ComfyUI/models/checkpoints/Sulphur-2-distilled-fp8.safetensors"
 if not os.path.exists(MODEL_PATH):
     print("Sulphur-2 model not found. Starting secure download from Hugging Face...")
-    # RunPodのエンドポイント設定で指定する環境変数「HF_TOKEN」を読み込みます
     hf_token = os.environ.get("HF_TOKEN")
     if not hf_token:
         print("WARNING: 'HF_TOKEN' environment variable is not set! Download might fail if the repo is private/gated.")
     
     try:
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-        # huggingface_hubライブラリを使って安全にダウンロード
         downloaded_file = hf_hub_download(
             repo_id="SulphurAI/Sulphur-2-base",
             filename="Sulphur-2-distilled-fp8.safetensors",
-            local_dir="/comfyui/models/checkpoints",
+            local_dir="/workspace/ComfyUI/models/checkpoints",
             local_dir_use_symlinks=False,
             token=hf_token
         )
@@ -44,7 +43,6 @@ def queue_prompt(prompt_workflow):
 def handler(job):
     job_input = job.get("input", {})
     
-    # ユーザーがAPIを叩くときに指定するパラメータ
     prompt_text = job_input.get("prompt", "A futuristic city at night, 4k, high resolution")
     negative_prompt_text = job_input.get("negative_prompt", "worst quality, low quality")
     seed = job_input.get("seed", 42)
@@ -53,7 +51,7 @@ def handler(job):
     with open("/workflow_api.json", "r") as f:
         workflow = json.load(f)
         
-    # 2. ワークフロー内のテキスト入力部分（プロンプト等）を、APIから受け取った文字に書き換え
+    # 2. ワークフロー内のプロンプト書き換え
     for node_id, node in workflow.items():
         if node.get("class_type") == "CLIPTextEncode" and "positive" in str(node.get("_meta", {}).get("title", "")).lower():
             node["inputs"]["text"] = prompt_text
@@ -68,9 +66,9 @@ def handler(job):
     prompt_id = result.get("prompt_id")
     print(f"Workflow submitted! Prompt ID: {prompt_id}")
     
-    # 3. 動画ができるのを監視（最大3分）
+    # 3. 動画ができるのを監視（※パスを /workspace/ComfyUI/output に修正）
     import time
-    output_dir = "/comfyui/output"
+    output_dir = "/workspace/ComfyUI/output"
     video_path = None
     
     for _ in range(180):
