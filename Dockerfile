@@ -1,21 +1,27 @@
-FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
+# 1. PyTorchを最新に近いバージョン (2.4.0+) に引き上げる
+FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /comfyui
 
-RUN apt-get update && apt-get install -y git ffmpeg && rm -rf /var/lib/apt/lists/*
+# 必要な基本ツールのインストール
+RUN apt-get update && apt-get install -y git ffmpeg wget && rm -rf /var/lib/apt/lists/*
 
-# 必要最低限のパッケージのみインストール
-RUN pip3 install --no-cache-dir runpod
+# pipのアップグレード
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
 
-# ComfyUI本体
+# ComfyUI本体のインストール
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git .
 
-# requirements.txt をコピーする前に、競合を避けるために最新のセットアップツールを入れる
-RUN pip3 install --upgrade pip setuptools wheel
-RUN pip3 install --no-cache-dir -r requirements.txt
+# 2. requirements.txtを使わず、ここで主要なライブラリを直接インストールする
+# ComfyUIに必要な最小限の依存関係を直接指定します
+RUN pip3 install --no-cache-dir \
+    torchvision torchaudio \
+    scipy numpy pillow \
+    tqdm PyYAML \
+    runpod
 
-# カスタムノード (最低限必要なものだけに絞る)
+# カスタムノードのインストール
 RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git custom_nodes/ComfyUI-VideoHelperSuite
 
 # 設定ファイルの配置
