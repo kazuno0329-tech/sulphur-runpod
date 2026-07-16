@@ -24,7 +24,7 @@ def handler(job):
     seed = job_input.get("seed", 42)
     
     # 1. 保存した設計図をロード
-    with open("/workspace/workflow_api.json", "r") as f:
+    with open("/workflow_api.json", "r") as f:
         workflow = json.load(f)
         
     # 2. ワークフロー内のテキスト入力部分（プロンプト等）を、APIから受け取った文字に書き換え
@@ -44,15 +44,16 @@ def handler(job):
     
     # 3. 動画ができるのを監視（最大3分）
     import time
-    output_dir = "/workspace/ComfyUI/output"
+    output_dir = "/comfyui/output"
     video_path = None
     
     for _ in range(180):
         time.sleep(1)
-        files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".mp4")]
-        if files:
-            video_path = max(files, key=os.path.getctime)
-            break
+        if os.path.exists(output_dir):
+            files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".mp4")]
+            if files:
+                video_path = max(files, key=os.path.getctime)
+                break
             
     if not video_path:
         return {"status": "error", "message": "Video generation timed out inside ComfyUI"}
