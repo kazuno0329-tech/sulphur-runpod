@@ -22,7 +22,7 @@ def load_model():
             model_id,
             cache_dir=cache_dir,
             torch_dtype=torch.bfloat16,  # 内部計算用の精度
-            device_map="auto",           # 自動デバイス割り当て（bitsandbytes/accelerateが必要）
+            device_map="balanced",           # "auto" から "balanced" に修正
             local_files_only=False
         )
         print("Model loaded successfully!")
