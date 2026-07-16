@@ -1,4 +1,4 @@
-FROM runpod/worker-comfyui:5.0.0
+FROM runpod/worker-comfyui:main-latest
 
 # システムパッケージを更新し、gitとwgetをインストール
 USER root
