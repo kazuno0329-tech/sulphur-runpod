@@ -4,11 +4,10 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# pipのアップグレードは行いますが、requirementsのインストール時はイメージ内の既存パッケージを保護します
 RUN pip3 install --no-cache-dir --upgrade pip setuptools
 
 COPY requirements.txt .
-# ⚠️ --upgrade フラグを外し、既存のtorchやtorchvisionの上書き・破損を防ぎます
+# ⚠️ ベースのPyTorch環境を壊さないよう、通常インストールを行います
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY handler.py .
