@@ -13,7 +13,8 @@ pipe = None
 
 def load_model():
     global pipe
-    model_id = "Civitai/Sulphur-2-distilled-fp8"
+    # model_id = "Civitai/Sulphur-2-distilled-fp8"
+    model_id = "Kijai/Sulphur-2-distilled-fp8"
     print(f"Loading model: {model_id} ...")
     
     try:
