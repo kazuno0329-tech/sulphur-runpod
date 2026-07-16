@@ -18,9 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --no-cache-dir --upgrade pip
 RUN pip3 install --no-cache-dir runpod huggingface_hub
 
-# 4. PyTorch関連のインストール（最も重いため独立させる）
+# 4. PyTorch と、相性の良い古いバージョンの Triton を指定してインストール
 RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
+RUN pip3 install --no-cache-dir triton==2.1.0
 # 5. ComfyUIのインストール
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git .
 RUN pip3 install --no-cache-dir -r requirements.txt
