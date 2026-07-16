@@ -1,27 +1,22 @@
-# CUDA 11.8を指定（ほとんどの環境で動く最も堅実な選択）
-FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+# RunPodの公式PyTorch環境（これが最もビルドと実行に安定します）
+FROM runpod/pytorch:2.2.0-py3.10-cuda12.1.0
 
-# 必要なツール
+# 必要なパッケージをまとめてインストール
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    wget \
-    python3 \
-    python3-pip \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# PyTorch (CUDA 11.8対応版)
-RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# RunPod SDK と必要なライブラリを確実にインストール
+RUN pip install --no-cache-dir runpod huggingface_hub
 
 # ComfyUIのインストール
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
 WORKDIR /comfyui
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# カスタムノード
+# カスタムノードとファイルをコピー
 RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git /comfyui/custom_nodes/ComfyUI-VideoHelperSuite
-
-# ファイルコピー
 COPY workflow_api.json /workflow_api.json
 COPY rp_handler.py /rp_handler.py
 
