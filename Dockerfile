@@ -20,4 +20,6 @@ COPY workflow_api.json /workflow_api.json
 COPY rp_handler.py /rp_handler.py
 
 # 起動コマンド
-CMD ["python3", "-u", "/rp_handler.py"]
+#CMD ["python3", "-u", "/rp_handler.py"]
+# ベースイメージに内蔵されている起動スクリプト（start.sh）を経由して実行します
+CMD ["./start.sh"]
