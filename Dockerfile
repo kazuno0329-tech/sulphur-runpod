@@ -1,18 +1,14 @@
-FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
+FROM runpod/worker-comfy:2.1.0
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# 必要なカスタムノード（動画書き出し用のVHSノード）をインストール
+RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git /workspace/ComfyUI/custom_nodes/ComfyUI-VideoHelperSuite
 
-WORKDIR /app
+# Sulphur-2の単一モデルファイルを、ビルド時にあらかじめダウンロードしてコンテナ内に配置します
+RUN wget -O /workspace/ComfyUI/models/checkpoints/Sulphur-2-distilled-fp8.safetensors \
+    https://huggingface.co/Civitai/Sulphur-2-distilled-fp8/resolve/main/Sulphur-2-distilled-fp8.safetensors
 
-RUN pip3 install --no-cache-dir --upgrade pip setuptools
+# ワークフローとハンドラー（Python）をコンテナ内にコピー
+COPY workflow_api.json /workspace/workflow_api.json
+COPY rp_handler.py /workspace/rp_handler.py
 
-COPY requirements.txt .
-# ⚠️ ベースのPyTorch環境を壊さないよう、通常インストールを行います
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-COPY handler.py .
-
-ENV HF_HUB_OFFLINE=0
-ENV TRANSFORMERS_OFFLINE=0
-
-CMD ["python3", "-u", "handler.py"]
+CMD ["python3", "-u", "/workspace/rp_handler.py"]
