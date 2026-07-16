@@ -2,12 +2,13 @@ import os
 import json
 import urllib.request
 import urllib.parse
+import socket
+import time
 import runpod
 from runpod.serverless.utils import rp_upload
 from huggingface_hub import hf_hub_download
 
 # --- コンテナ起動時にモデルが存在しない場合、自動でダウンロードする ---
-# 確実に存在する「sulphur_dev_fp8mixed.safetensors」をチェックポイントのパスに設定します
 MODEL_PATH = "/comfyui/models/checkpoints/sulphur_dev_fp8mixed.safetensors"
 if not os.path.exists(MODEL_PATH):
     print("Sulphur-2 model not found. Starting secure download from Hugging Face...")
@@ -19,7 +20,7 @@ if not os.path.exists(MODEL_PATH):
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         downloaded_file = hf_hub_download(
             repo_id="SulphurAI/Sulphur-2-base",
-            filename="sulphur_dev_fp8mixed.safetensors",  # 正しいファイル名に修正しました
+            filename="sulphur_dev_fp8mixed.safetensors",
             local_dir="/comfyui/models/checkpoints",
             local_dir_use_symlinks=False,
             token=hf_token
@@ -30,17 +31,38 @@ if not os.path.exists(MODEL_PATH):
         raise e
 # ----------------------------------------------------------------------
 
-COMFYUI_ADDRESS = "127.0.0.1:8188"
+COMFYUI_ADDRESS = "127.0.0.1"
+COMFYUI_PORT = 8188
+
+def wait_for_comfyui(address=COMFYUI_ADDRESS, port=COMFYUI_PORT, timeout=180):
+    """ComfyUIサーバーが立ち上がり、接続できるようになるまでループで待機します"""
+    start_time = time.time()
+    print(f"Waiting for ComfyUI to start on {address}:{port}...")
+    while time.time() - start_time < timeout:
+        try:
+            # ポートに接続できるか確認する
+            with socket.create_connection((address, port), timeout=1):
+                print("ComfyUI is successfully running and ready to accept requests!")
+                return True
+        except (socket.timeout, ConnectionRefusedError):
+            # 起動していない場合は1秒待って再試行
+            time.sleep(1)
+    print("Timeout: ComfyUI server did not start within the expected time.")
+    return False
 
 def queue_prompt(prompt_workflow):
     p = {"prompt": prompt_workflow}
     data = json.dumps(p).encode('utf-8')
-    req = urllib.request.Request(f"http://{COMFYUI_ADDRESS}/prompt", data=data)
+    req = urllib.request.Request(f"http://{COMFYUI_ADDRESS}:{COMFYUI_PORT}/prompt", data=data)
     req.add_header('Content-Type', 'application/json')
     with urllib.request.urlopen(req) as response:
         return json.loads(response.read().decode('utf-8'))
 
 def handler(job):
+    # 【重要】ジョブ処理を開始する前に、ComfyUIのポートが開いているか確認し、準備が整うまで待機します
+    if not wait_for_comfyui():
+        return {"status": "error", "message": "ComfyUI failed to start in time"}
+
     job_input = job.get("input", {})
     
     prompt_text = job_input.get("prompt", "A futuristic city at night, 4k, high resolution")
@@ -67,7 +89,6 @@ def handler(job):
     print(f"Workflow submitted! Prompt ID: {prompt_id}")
     
     # 3. 動画ができるのを監視
-    import time
     output_dir = "/comfyui/output"
     video_path = None
     
