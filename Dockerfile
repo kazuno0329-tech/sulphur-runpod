@@ -1,5 +1,5 @@
 # NVIDIA公式のCUDA 12.1イメージを使用（確実に存在します）
-FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+FROM runpod/base:0.4.0
 
 # 必要なツールをインストール
 RUN apt-get update && apt-get install -y --no-install-recommends \
