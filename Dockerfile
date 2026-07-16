@@ -1,26 +1,27 @@
 FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
+# 再ビルド用トリガー（ビルドのたびにこの数値を変更してください）
+ENV REBUILD_ID=20260716_01
+
 ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR /app
 
-# 必要なツールのインストール
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git ffmpeg wget && rm -rf /var/lib/apt/lists/*
+# 必要なツール
+RUN apt-get update && apt-get install -y git ffmpeg wget && rm -rf /var/lib/apt/lists/*
 
-# ComfyUIを専用フォルダにクローン (ルート直下ではない)
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /app/ComfyUI
+# 新しい作業ディレクトリを作成（古い場所と完全に分離）
+WORKDIR /opt/comfyui
 
-# ライブラリインストール
+# ComfyUIをクリーンインストール
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git .
+
+# ライブラリのインストール
 RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip3 install --no-cache-dir torch torchvision torchaudio scipy numpy pillow tqdm PyYAML runpod
 
-# カスタムノードのインストール
-RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git /app/ComfyUI/custom_nodes/ComfyUI-VideoHelperSuite
+# 明示的に必要なファイルだけを配置
+COPY rp_handler.py /opt/rp_handler.py
+COPY workflow_api.json /opt/workflow_api.json
 
-# 設定ファイルを適切な場所にコピー
-COPY workflow_api.json /app/workflow_api.json
-COPY rp_handler.py /app/rp_handler.py
-
-# 実行コマンドの修正 (ComfyUIフォルダ内のmain.pyを指す)
-# また、rp_handler.pyも/app配下で実行するように変更
-CMD ["python3", "-u", "/app/rp_handler.py"]
+# 起動コマンド
+# コンテナ起動時にComfyUIとrp_handlerを両方動かす
+CMD ["sh", "-c", "python3 main.py --listen 8188 & python3 /opt/rp_handler.py"]
