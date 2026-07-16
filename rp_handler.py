@@ -53,9 +53,13 @@ def handler(job):
         upload_cmd = f"curl --upload-file {latest_file} https://transfer.sh/{os.path.basename(latest_file)}"
         download_url = subprocess.check_output(upload_cmd, shell=True).decode('utf-8').strip()
         return {"status": "success", "download_url": download_url}
-    except Exception as e:
-        return {"status": "error", "message": f"Upload failed: {str(e)}"}
 
+    except Exception as e:
+            # エラーが発生したらログに残してコンテナを終了させない
+            print("ERROR OCCURRED:", e)
+            traceback.print_exc()
+            return {"status": "error", "message": str(e)}
+    
 if __name__ == "__main__":
     # ComfyUIを起動（バックグラウンド）
     subprocess.Popen(["python3", "/comfyui/main.py", "--port", "8188", "--preview-method", "none"])
