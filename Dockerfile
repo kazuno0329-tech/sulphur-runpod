@@ -1,4 +1,5 @@
-FROM runpod/worker-comfyui:5.8.4-base
+# 【修正箇所】ベースイメージのタグを「5.8.4-base」から、CUDAの要求が低い「4.0.0-base」に切り替えます
+FROM runpod/worker-comfyui:4.0.0-base
 
 # システムパッケージを更新し、gitとwgetをインストール
 USER root
