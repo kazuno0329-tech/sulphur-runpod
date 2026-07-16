@@ -7,8 +7,7 @@ from runpod.serverless.utils import rp_upload
 from huggingface_hub import hf_hub_download
 
 # --- コンテナ起動時にモデルが存在しない場合、自動でダウンロードする ---
-# ※パスを「/workspace/ComfyUI/...」に修正しました
-MODEL_PATH = "/workspace/ComfyUI/models/checkpoints/Sulphur-2-distilled-fp8.safetensors"
+MODEL_PATH = "/comfyui/models/checkpoints/Sulphur-2-distilled-fp8.safetensors"
 if not os.path.exists(MODEL_PATH):
     print("Sulphur-2 model not found. Starting secure download from Hugging Face...")
     hf_token = os.environ.get("HF_TOKEN")
@@ -20,7 +19,7 @@ if not os.path.exists(MODEL_PATH):
         downloaded_file = hf_hub_download(
             repo_id="SulphurAI/Sulphur-2-base",
             filename="Sulphur-2-distilled-fp8.safetensors",
-            local_dir="/workspace/ComfyUI/models/checkpoints",
+            local_dir="/comfyui/models/checkpoints",
             local_dir_use_symlinks=False,
             token=hf_token
         )
@@ -66,9 +65,9 @@ def handler(job):
     prompt_id = result.get("prompt_id")
     print(f"Workflow submitted! Prompt ID: {prompt_id}")
     
-    # 3. 動画ができるのを監視（※パスを /workspace/ComfyUI/output に修正）
+    # 3. 動画ができるのを監視
     import time
-    output_dir = "/workspace/ComfyUI/output"
+    output_dir = "/comfyui/output"
     video_path = None
     
     for _ in range(180):
