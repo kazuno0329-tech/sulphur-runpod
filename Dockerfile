@@ -1,23 +1,26 @@
-# 確実に存在する公式の安定したCUDAイメージ
-FROM runpod/pytorch:2.2.0-py3.10-cuda12.1.0
+# NVIDIA公式のCUDA 12.1イメージを使用（確実に存在します）
+FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
 
-# 必要なパッケージ
+# 必要なツールをインストール
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     wget \
+    python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # ComfyUIのインストール
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
 WORKDIR /comfyui
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# VideoHelperSuiteのインストール
+# カスタムノードのインストール
 RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git /comfyui/custom_nodes/ComfyUI-VideoHelperSuite
 
-# 各ファイルをコピー
+# ファイルをコピー
 COPY workflow_api.json /workflow_api.json
 COPY rp_handler.py /rp_handler.py
 
-# 直接ハンドラーを起動（これが最も安定します）
+# 実行
 CMD ["python3", "-u", "/rp_handler.py"]
