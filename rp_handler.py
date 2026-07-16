@@ -7,7 +7,8 @@ from runpod.serverless.utils import rp_upload
 from huggingface_hub import hf_hub_download
 
 # --- コンテナ起動時にモデルが存在しない場合、自動でダウンロードする ---
-MODEL_PATH = "/comfyui/models/checkpoints/Sulphur-2-distilled-fp8.safetensors"
+# 確実に存在する「sulphur_dev_fp8mixed.safetensors」をチェックポイントのパスに設定します
+MODEL_PATH = "/comfyui/models/checkpoints/sulphur_dev_fp8mixed.safetensors"
 if not os.path.exists(MODEL_PATH):
     print("Sulphur-2 model not found. Starting secure download from Hugging Face...")
     hf_token = os.environ.get("HF_TOKEN")
@@ -18,7 +19,7 @@ if not os.path.exists(MODEL_PATH):
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         downloaded_file = hf_hub_download(
             repo_id="SulphurAI/Sulphur-2-base",
-            filename="Sulphur-2-distilled-fp8.safetensors",
+            filename="sulphur_dev_fp8mixed.safetensors",  # 正しいファイル名に修正しました
             local_dir="/comfyui/models/checkpoints",
             local_dir_use_symlinks=False,
             token=hf_token
