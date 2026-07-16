@@ -55,9 +55,6 @@ def handler(job):
         return {"status": "success", "download_url": download_url}
 
     except Exception as e:
-            # エラーが発生したらログに残してコンテナを終了させない
-            print("ERROR OCCURRED:", e)
-            traceback.print_exc()
             return {"status": "error", "message": str(e)}
     
 if __name__ == "__main__":
