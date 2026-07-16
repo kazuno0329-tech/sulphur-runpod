@@ -1,5 +1,4 @@
-# 確実に存在し、CUDA不整合を回避できる 5.2.0-base を指定します
-FROM runpod/worker-comfyui:3.0.1
+FROM runpod/worker-comfyui:5.0.0
 
 # システムパッケージを更新し、gitとwgetをインストール
 USER root
