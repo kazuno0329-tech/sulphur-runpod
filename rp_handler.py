@@ -5,7 +5,6 @@ import time
 import subprocess
 import runpod
 
-# ComfyUIが起動するまで最大60秒待つ関数
 def wait_for_server(url, timeout=60):
     start_time = time.time()
     while time.time() - start_time < timeout:
@@ -13,40 +12,51 @@ def wait_for_server(url, timeout=60):
             with urllib.request.urlopen(url):
                 return True
         except:
-            time.sleep(2) # 2秒待機してリトライ
+            time.sleep(2)
     return False
 
 def handler(job):
-    # 1. ComfyUIのポート
     api_url = "http://127.0.0.1:8188"
     
-    # 2. ComfyUIが既に起動しているか確認、なければ起動
-    # ※サーバーレスなのでハンドラー内でプロセス管理をする必要がある
-    if not wait_for_server(api_url, timeout=1):
-        print("Starting ComfyUI...")
-        subprocess.Popen(["python3", "/comfyui/main.py", "--port", "8188", "--cpu"])
-        if not wait_for_server(api_url, timeout=60):
-            return {"status": "error", "message": "ComfyUI failed to start"}
-
-    # 3. ワークフロー読み込み
+    # ワークフロー読み込み
     with open("/workflow_api.json", "r") as f:
         workflow = json.load(f)
     
-    # 4. プロンプト送信
+    # プロンプト設定
     job_input = job.get("input", {})
     prompt_text = job_input.get("prompt", "A high-tech machinery.")
     if "267:266" in workflow:
         workflow["267:266"]["inputs"]["value"] = prompt_text
 
+    # プロンプト送信
     req_data = json.dumps({"prompt": workflow}).encode('utf-8')
     req = urllib.request.Request(f"{api_url}/prompt", data=req_data)
     req.add_header('Content-Type', 'application/json')
     
     try:
         with urllib.request.urlopen(req) as response:
-            return {"status": "success", "message": "Prompt queued"}
+            pass # 送信成功
     except Exception as e:
         return {"status": "error", "message": f"Connection failed: {str(e)}"}
 
+    # 生成待機（タイムアウトを少し長めに設定）
+    time.sleep(90) 
+    
+    # ファイル転送
+    output_dir = "/comfyui/output"
+    files = [os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(('.mp4', '.avi'))]
+    if not files:
+        return {"status": "error", "message": "Video not found"}
+    
+    latest_file = max(files, key=os.path.getctime)
+    try:
+        upload_cmd = f"curl --upload-file {latest_file} https://transfer.sh/{os.path.basename(latest_file)}"
+        download_url = subprocess.check_output(upload_cmd, shell=True).decode('utf-8').strip()
+        return {"status": "success", "download_url": download_url}
+    except Exception as e:
+        return {"status": "error", "message": f"Upload failed: {str(e)}"}
+
 if __name__ == "__main__":
+    # ComfyUIを起動（バックグラウンド）
+    subprocess.Popen(["python3", "/comfyui/main.py", "--port", "8188", "--preview-method", "none"])
     runpod.serverless.start({"handler": handler})
