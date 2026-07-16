@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 必要なカスタムノード（動画書き出し用のVHSノード）をインストール
 RUN git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git /comfyui/custom_nodes/ComfyUI-VideoHelperSuite
 
-# Sulphur-2の単一モデルファイルを、ビルド時にあらかじめダウンロードして配置します
+# 【修正箇所】Hugging Face の公式直リンクURLから Sulphur-2-distilled-fp8.safetensors をダウンロードします
 RUN wget -O /comfyui/models/checkpoints/Sulphur-2-distilled-fp8.safetensors \
-    https://huggingface.co/Civitai/Sulphur-2-distilled-fp8/resolve/main/Sulphur-2-distilled-fp8.safetensors
+    https://huggingface.co/SulphurAI/Sulphur-2-base/resolve/main/Sulphur-2-distilled-fp8.safetensors
 
 # ワークフローとハンドラー（Python）をコンテナ内にコピー
 COPY workflow_api.json /workflow_api.json
