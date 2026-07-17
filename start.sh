@@ -18,6 +18,10 @@ from huggingface_hub import hf_hub_download
 import os
 
 token = os.environ.get('HUGGING_FACE_TOKEN')
+
+# トークンの中身をログに出力（デバッグ用）
+print(f'DEBUG: Found token: {token}')
+
 hf_hub_download(
     repo_id='$MODEL_REPO',
     filename='$MODEL_FILE',
