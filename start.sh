@@ -3,7 +3,13 @@
 NETWORK_STORAGE="/runpod-volume/checkpoints"
 # ComfyUIがモデルを探すディレクトリ
 COMFY_DIR="/comfyui/models/checkpoints"
-MODEL_REPO="Kijai/Sulphur-2-distilled-fp8"
+
+# 変更前
+# MODEL_REPO="Seregil13th/Sulphur-2-base"
+# MODEL_FILE="sulphur_dev_fp8mixed.safetensors"
+
+# 変更後（Kijai版にする場合）
+MODEL_REPO="Civitai/Sulphur-2-distilled-fp8"
 MODEL_FILE="sulphur_distil_fp8mixed.safetensors"
 
 
@@ -18,9 +24,6 @@ from huggingface_hub import hf_hub_download
 import os
 
 token = os.environ.get('HUGGING_FACE_TOKEN')
-
-# トークンの中身をログに出力（デバッグ用）
-print(f'DEBUG: Found token: {token}')
 
 hf_hub_download(
     repo_id='$MODEL_REPO',
