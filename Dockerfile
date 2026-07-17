@@ -1,6 +1,6 @@
 FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
-# OSパッケージのインストール
+# 必要なOSパッケージをインストール
 RUN apt-get update && apt-get install -y git ffmpeg wget && rm -rf /var/lib/apt/lists/*
 
 # ComfyUIのディレクトリ作成と本体の配置
@@ -16,12 +16,14 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
 COPY workflow_api.json /workflow_api.json
 COPY rp_handler.py /rp_handler.py
 
-# 起動スクリプトの作成（安全な形式に修正）
-RUN echo '#!/bin/bash' > /entrypoint.sh && \
-    echo 'python3 main.py --listen 0.0.0.0 --port 8188 > /dev/null 2>&1 &' >> /entrypoint.sh && \
-    echo 'echo "ComfyUI started in background."' >> /entrypoint.sh && \
-    echo 'python3 /rp_handler.py' >> /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+# 起動スクリプトの作成（確実なHeredoc形式）
+RUN cat <<EOF > /entrypoint.sh
+#!/bin/bash
+python3 main.py --listen 0.0.0.0 --port 8188 > /dev/null 2>&1 &
+echo "ComfyUI started in background."
+python3 /rp_handler.py
+EOF
+RUN chmod +x /entrypoint.sh
 
 # エントリーポイントの設定
 ENTRYPOINT ["/entrypoint.sh"]
