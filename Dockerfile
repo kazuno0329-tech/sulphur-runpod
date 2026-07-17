@@ -12,6 +12,5 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY workflow_api.json /workflow_api.json
 COPY rp_handler.py /rp_handler.py
 
-# 3. ComfyUI本体を起動しつつ、rp_handlerを実行する
-# ※ --listen 0.0.0.0 --port 8188 に修正しました
-CMD ["sh", "-c", "python3 main.py --listen 0.0.0.0 --port 8188 & python3 /rp_handler.py"]
+# 3. ハンドラーのみを実行（サーバー起動はハンドラー内で管理されるため）
+CMD ["python3", "/rp_handler.py"]
