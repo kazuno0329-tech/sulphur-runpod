@@ -3,8 +3,8 @@
 NETWORK_STORAGE="/runpod-volume/checkpoints"
 # ComfyUIがモデルを探すディレクトリ
 COMFY_DIR="/comfyui/models/checkpoints"
-MODEL_REPO="Seregil13th/Sulphur-2-base"
-MODEL_FILE="sulphur_dev_fp8mixed.safetensors"
+MODEL_REPO="Kijai/Sulphur-2-distilled-fp8"
+MODEL_FILE="sulphur_distil_fp8mixed.safetensors"
 
 
 # 1. ネットワークストレージ側のフォルダを作成
