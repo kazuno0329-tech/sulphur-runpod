@@ -16,6 +16,9 @@ def wait_for_server(url, timeout=60):
     return False
 
 def handler(job):
+    # 【追加】ここでサーバー起動を待つ
+    if not wait_for_server("http://127.0.0.1:8188"):
+        return {"status": "error", "message": "ComfyUI failed to start in time"}
     api_url = "http://127.0.0.1:8188"
     
     # ワークフロー読み込み
